@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's|import { prisma } from '\\\\''../index.js'\\\\'';|import prisma from '\\\\''../lib/prisma.js'\\\\'';|g' routes/alerts.js routes/auth.js routes/chat.js routes/doctor.js routes/food.js routes/glucose.js routes/mealPlan.js routes/profile.js)",
+      "Bash(sed -i 's|import { prisma } from '\\\\''../index.js'\\\\'';|import prisma from '\\\\''../lib/prisma.js'\\\\'';|g' middleware/auth.js)",
+      "Bash(node --input-type=module)",
+      "Bash(npx prisma *)",
+      "Bash(node prisma/seed.js)",
+      "Bash(timeout 6 node src/index.js)",
+      "Bash(docker --version)",
+      "PowerShell(Start-Process \"C:\\\\Program Files\\\\Docker\\\\Docker\\\\Docker Desktop.exe\" -ErrorAction SilentlyContinue)",
+      "Bash(docker exec glucoai-db psql -U postgres -d glucoai -c ' *)",
+      "Bash(docker exec *)",
+      "Bash(docker port *)",
+      "PowerShell(netstat -ano)",
+      "PowerShell(Get-WmiObject Win32_Process | Where-Object { $_.ProcessId -in @\\(19584, 1952\\) } | Select-Object ProcessId, Name, ExecutablePath | Format-List)",
+      "PowerShell(Get-WmiObject Win32_Process -Filter \"ProcessId = 1952\")",
+      "Bash(docker stop *)",
+      "Bash(docker rm *)",
+      "Bash(docker run *)",
+      "Bash(npm run *)",
+      "Bash(py --version)",
+      "Bash(python -c \"import pdfplumber; print\\('pdfplumber ok'\\)\")",
+      "Bash(python scripts/extract_ada_chunks.py)",
+      "Bash(npm --prefix scripts install)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\kastu\\OneDrive\\Desktop\\GlucoAI\\New folder\\server\\src"
+    ]
+  }
+}

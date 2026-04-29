@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "seed": "node seed_rag.js",
+    "eval": "node eval_rag.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "glucoai": "file:..",
+    "pg": "^8.13.3"
+  }
+}

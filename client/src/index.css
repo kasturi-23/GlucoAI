@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light dark; }
+  body { @apply antialiased text-gray-900 dark:text-gray-100; }
+}
+
+@layer components {
+  .skeleton {
+    @apply bg-gray-200 dark:bg-gray-700 rounded animate-pulse;
+    background-image: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.3) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-xl px-4 py-2.5
+           transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600
+           text-gray-700 dark:text-gray-200 font-medium rounded-xl px-4 py-2.5
+           transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-gray-300 dark:border-gray-600
+           bg-white dark:bg-gray-800 px-4 py-2.5 text-sm
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+           dark:text-gray-100 placeholder-gray-400;
+  }
+
+  .badge-safe    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-glucose-safe-light text-glucose-safe-dark; }
+  .badge-warn    { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-glucose-warning-light text-glucose-warning-dark; }
+  .badge-danger  { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-glucose-danger-light text-glucose-danger-dark; }
+}

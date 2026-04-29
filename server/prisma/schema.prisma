@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DiabetesType {
+  TYPE_1
+  TYPE_2
+  GESTATIONAL
+  PREDIABETES
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  DIETITIAN
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+enum AlertType {
+  SPIKE_WARNING
+  MEDICATION_REMINDER
+  MEAL_REMINDER
+  WEEKLY_PATTERN
+  LOW_GLUCOSE
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  name           String
+  password       String
+  role           UserRole     @default(PATIENT)
+  diabetesType   DiabetesType?
+  dateOfBirth    DateTime?
+  weight         Float?
+  height         Float?
+  hba1c          Float?
+  carbTarget     Int          @default(150)
+  calorieGoal    Int          @default(2000)
+  medications    Json?
+  allergies      String[]
+  foodPreferences String[]
+  avatar         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  glucoseReadings GlucoseReading[]
+  foodLogs        FoodLog[]
+  mealPlans       MealPlan[]
+  alerts          Alert[]
+  chatMessages    ChatMessage[]
+  clinicalNotes   ClinicalNote[]   @relation("PatientNotes")
+  doctorNotes     ClinicalNote[]   @relation("DoctorNotes")
+  patientLinks    DoctorPatient[]  @relation("DoctorLinks")
+  doctorLinks     DoctorPatient[]  @relation("PatientLinks")
+  scannedLabels   ScannedLabel[]
+  scannedFoods    ScannedFood[]
+
+  @@map("users")
+}
+
+model DoctorPatient {
+  id        String   @id @default(uuid())
+  doctorId  String
+  patientId String
+  createdAt DateTime @default(now())
+
+  doctor  User @relation("DoctorLinks", fields: [doctorId], references: [id])
+  patient User @relation("PatientLinks", fields: [patientId], references: [id])
+
+  @@unique([doctorId, patientId])
+  @@map("doctor_patients")
+}
+
+model GlucoseReading {
+  id          String   @id @default(uuid())
+  userId      String
+  value       Float
+  unit        String   @default("mg/dL")
+  mealContext String?
+  notes       String?
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("glucose_readings")
+}
+
+model FoodLog {
+  id          String   @id @default(uuid())
+  userId      String
+  mealType    MealType
+  foodsJson   Json
+  totalCarbs  Float    @default(0)
+  totalCalories Float  @default(0)
+  glycemicLoad  Float  @default(0)
+  imageUrl    String?
+  aiAnalysis  String?
+  timestamp   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("food_logs")
+}
+
+model MealPlan {
+  id            String   @id @default(uuid())
+  userId        String
+  weekStart     DateTime
+  planJson      Json
+  generatedByAi Boolean  @default(true)
+  ragGrounded   Boolean  @default(false)
+  aiModel       String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekStart])
+  @@map("meal_plans")
+}
+
+model Alert {
+  id        String    @id @default(uuid())
+  userId    String
+  type      AlertType
+  message   String
+  detail    String?
+  isRead    Boolean   @default(false)
+  timestamp DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("alerts")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  role      String
+  content   String
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("chat_messages")
+}
+
+model ClinicalNote {
+  id          String   @id @default(uuid())
+  patientId   String
+  doctorId    String
+  content     String
+  restrictions String?
+  createdAt   DateTime @default(now())
+
+  patient User @relation("PatientNotes", fields: [patientId], references: [id])
+  doctor  User @relation("DoctorNotes", fields: [doctorId], references: [id])
+
+  @@index([patientId])
+  @@map("clinical_notes")
+}
+
+enum SpikeRisk {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum SafetyLevel {
+  SAFE
+  CAUTION
+  AVOID
+}
+
+model ScannedLabel {
+  id                  String      @id @default(uuid())
+  userId              String
+  productName         String      @default("Unknown Product")
+  imageUrl            String?
+  nutritionJson       Json?
+  verdict             String?
+  safetyLevel         SafetyLevel?
+  recommendedPortion  String?
+  spikeRisk           SpikeRisk?
+  healthConcerns      String[]
+  reasoning           String?
+  tips                String[]
+  netCarbs            Float?
+  carbBudgetRemaining Float?
+  scannedAt           DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scannedAt])
+  @@map("scanned_labels")
+}
+
+// ── RAG: ADA 2026 document chunks (embedding stored in pgvector, not Prisma) ──
+model RagChunk {
+  id         String   @id
+  source     String
+  document   String
+  journalRef String?  @map("journal_ref")
+  section    String?
+  pdfPage    Int?     @map("pdf_page")
+  chunkIndex Int?     @map("chunk_index")
+  tags       String[]
+  chunkText  String   @map("chunk_text")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("rag_chunks")
+}
+
+// ── RAG: text-based food safety check history ─────────────────────────────────
+model ScannedFood {
+  id                 String   @id @default(cuid())
+  userId             String   @map("user_id")
+  foodName           String   @map("food_name")
+  glucoseAtScan      Float?   @map("glucose_at_scan")
+  verdict            String?
+  spikeRisk          String?  @map("spike_risk")
+  portionAdvice      String?  @map("portion_advice")
+  recommendationJson Json?    @map("recommendation_json")
+  scannedAt          DateTime @default(now()) @map("scanned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scannedAt])
+  @@map("scanned_foods")
+}
